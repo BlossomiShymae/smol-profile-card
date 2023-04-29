@@ -1,0 +1,51 @@
+<!doctype html>
+
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="utf-8" data-bs-theme="dark">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>{{title}}</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link href="/css/stylesheet.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <script src="/js/bootstrap.min.js" defer></script>
+    <nav class="navbar navbar-expand-sm">
+          <div class="container">
+            <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavId" aria-controls="collapsibleNavId"
+                aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="collapsibleNavId">
+                <ul class="navbar-nav me-auto mt-2 mt-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/" aria-current="page">Home <span class="visually-hidden">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about">About</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <a href="#" class="me-2">
+                        <svg width="24" height="24">
+                            <image href="/svg/github-logo-duotone.svg" height="24" width="24"/>
+                        </svg>
+                    </a>
+                    <a href="#">
+                        <svg width="24" height="24">
+                            <image href="/svg/discord-logo-duotone.svg" height="24" width="24"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+      </div>
+    </nav>
+
+    <main class="container d-flex flex-column justify-content-center align-items-center">
+        {{{body}}}
+    </main>
+</body>
+</html>
