@@ -49,12 +49,14 @@ async fn main() {
     handlebars.set_strict_mode(true);
     handlebars.register_template_string("template", include_str!("templates/template.hbs")).unwrap();
     handlebars.register_template_string("index", include_str!("templates/index.hbs")).unwrap();
+    handlebars.register_template_string("about", include_str!("templates/about.hbs")).unwrap();
 
 
     // Setup controller routes and inject app state
     let app_state = Arc::new(AppState { registry: handlebars });
     let app = Router::new()
         .route("/", get(index::get_index))
+        .route("/about", get(index::get_about))
         .fallback_service(get(|req| async move {
             match ServeDir::new(opt.static_dir).oneshot(req).await {
                 Ok(res) => res.map(boxed),
