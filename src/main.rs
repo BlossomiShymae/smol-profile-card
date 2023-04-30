@@ -52,6 +52,7 @@ async fn main() {
     handlebars.register_template_string("template", include_str!("templates/template.hbs")).unwrap();
     handlebars.register_template_string("index", include_str!("templates/index.hbs")).unwrap();
     handlebars.register_template_string("about", include_str!("templates/about.hbs")).unwrap();
+    handlebars.register_template_string("errors/500", include_str!("templates/errors/500.hbs")).unwrap();
 
 
     // Setup controller routes and inject app state
