@@ -30,7 +30,7 @@ pub async fn get_index(query: Query<GithubUserViewModel>, State(state): State<Ar
         log::error!("{:?}", response.text().await.unwrap());
         let data = super::TemplateViewModel {
             title: "500 Internal Server Error".into(),
-            body: state.registry.render("errors/500", &Empty{}).unwrap(),
+            body: state.registry.render("errors/500", &Empty).unwrap(),
         };
 
         let r = state.registry.render("template", &data).unwrap();
