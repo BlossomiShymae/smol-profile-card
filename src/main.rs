@@ -7,11 +7,12 @@ use handlebars::Handlebars;
 use tower::{ServiceBuilder, ServiceExt};
 use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
+use reqwest::Client;
 
 pub mod models;
 pub mod controllers;
 
-use controllers::{index};
+use controllers::{index, image};
 
 // Command line interface
 #[derive(Parser, Debug)]
@@ -32,6 +33,7 @@ struct Opt {
 
 pub struct AppState {
     registry: Handlebars<'static>,
+    client: Client,
 }
 
 #[tokio::main]
@@ -53,10 +55,14 @@ async fn main() {
 
 
     // Setup controller routes and inject app state
-    let app_state = Arc::new(AppState { registry: handlebars });
+    let app_state = Arc::new(AppState { 
+        registry: handlebars,
+        client: Client::new()
+    });
     let app = Router::new()
         .route("/", get(index::get_index))
         .route("/about", get(index::get_about))
+        .route("/image", get(image::get_index))
         .fallback_service(get(|req| async move {
             match ServeDir::new(opt.static_dir).oneshot(req).await {
                 Ok(res) => res.map(boxed),
