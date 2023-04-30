@@ -11,6 +11,7 @@ use reqwest::Client;
 
 pub mod models;
 pub mod controllers;
+pub mod entities;
 
 use controllers::{index, image};
 
