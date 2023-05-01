@@ -15,7 +15,7 @@ pub struct TemplateViewModel {
     pub body: String,
 }
 
-pub async fn get_error_page(registry: Handlebars<'static>, status_code: StatusCode) -> (StatusCode, Html<String>) {
+pub async fn get_error_page(registry: &Handlebars<'static>, status_code: StatusCode) -> (StatusCode, Html<String>) {
     let data_tuple: (&str, &str) = match status_code {
         StatusCode::INTERNAL_SERVER_ERROR => ("500 Internal Server Error", "errors/500"),
         _ => panic!("Status code not implemented")
