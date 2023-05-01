@@ -1,3 +1,4 @@
+use rusqlite::params;
 use tokio_rusqlite::Connection;
 
 use crate::entities::github_user::GithubUser;
@@ -25,5 +26,22 @@ impl GitHubUserRepository {
     
             Ok::<_, rusqlite::Error>(users)
         }).await.unwrap().first().cloned()
+    }
+
+    pub async fn insert(&self, entity: GithubUser) -> Result<(), tokio_rusqlite::Error> {
+        let entity_clone = entity.clone();
+        self.conn.call(move |conn| {
+            let query = "INSERT INTO GitHubUser (id, username, name, location, avatar_url) VALUES (?1, ?2, ?3, ?4, ?5)";
+            conn.execute(query, params![
+                entity_clone.id, 
+                entity_clone.username, 
+                entity_clone.name, 
+                entity_clone.location, 
+                entity_clone.avatar_url
+                ]
+            ).unwrap();
+
+            Ok(())
+        }).await
     }
 }
