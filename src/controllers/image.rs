@@ -15,26 +15,12 @@ pub struct GithubUserViewModel {
 
 pub async fn get_index(query: Query<GithubUserViewModel>, State(state): State<Arc<AppState>>) -> (StatusCode, Html<String>) {
     let vm = query.0;
-    let username_move = vm.user.to_string();
     let username = vm.user.to_string();
 
     // Attempt to use database cache before making request
-    let user_option = state.conn.call(move |conn| {
-        let query = format!("SELECT * FROM GitHubUser WHERE username = '{}'", username_move);
-        let mut stmt = conn.prepare(query.as_str()).unwrap();
-        let users = stmt.query_map([], |row| {
-            Ok(crate::entities::github_user::GithubUser {
-                id: row.get(0)?,
-                username: row.get(1)?,
-                name: row.get(2)?,
-                location: row.get(3)?,
-                avatar_url: row.get(4)?,
-            })
-        })?.collect::<Result<Vec<crate::entities::github_user::GithubUser>, rusqlite::Error>>()?;
-
-        Ok::<_, rusqlite::Error>(users)
-    })
-    .await.unwrap().first().cloned();
+    let user_option = state.github_user_repository
+        .get_by_username(&username)
+        .await;
 
     // Return a user based on option
     let user = match user_option {

@@ -13,8 +13,11 @@ use reqwest::Client;
 pub mod models;
 pub mod controllers;
 pub mod entities;
+pub mod repositories;
 
 use controllers::{index, image};
+use repositories::github_user_repository::GitHubUserRepository;
+
 
 // Command line interface
 #[derive(Parser, Debug)]
@@ -37,6 +40,7 @@ pub struct AppState {
     registry: Handlebars<'static>,
     client: Client,
     conn: Connection,
+    github_user_repository: GitHubUserRepository
 }
 
 #[tokio::main]
@@ -79,12 +83,18 @@ async fn main() {
         panic!("Something went wrong!\n{:?}", err);
     });
 
+    // Setup repositories
+    let github_user_repository = GitHubUserRepository {
+        conn: conn.clone()
+    };
+
 
     // Setup controller routes and inject app state
     let app_state = Arc::new(AppState { 
         registry: handlebars,
         client: Client::new(),
-        conn
+        conn,
+        github_user_repository
     });
     let app = Router::new()
         .route("/", get(index::get_index))
