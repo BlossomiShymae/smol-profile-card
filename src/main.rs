@@ -4,7 +4,6 @@ use axum::{routing::get, Router};
 use axum::http::{Response, StatusCode};
 use axum::body::{boxed, Body};
 use handlebars::Handlebars;
-use tokio_rusqlite::{Connection};
 use tower::{ServiceBuilder, ServiceExt};
 use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
@@ -36,7 +35,6 @@ struct Opt {
 pub struct AppState {
     registry: Handlebars<'static>,
     client: Client,
-    conn: Connection,
 }
 
 #[tokio::main]
@@ -58,34 +56,11 @@ async fn main() {
     handlebars.register_template_string("errors/500", include_str!("templates/errors/500.hbs")).unwrap();
     handlebars.register_template_string("errors/503", include_str!("templates/errors/503.hbs")).unwrap();
 
-    // Create database connection
-    let conn = Connection::open("db.sqlite").await.unwrap_or_else(|err| {
-        panic!("Failed to create a connection to database!\n{:?}", err);
-    });
-    conn.call(|conn| {
-        conn.execute("CREATE TABLE IF NOT EXISTS GitHubUser (
-            id          INTEGER PRIMARY KEY,
-            username    TEXT NOT NULL,
-            name        TEXT NOT NULL,
-            location    TEXT NOT NULL,
-            avatar_url  TEXT NOT NULL
-        )",
-        ()).unwrap_or_else(|err| {
-        panic!("Failed to create table for GitHubUser!\n{:?}", err);
-        });
-
-        Ok(())
-    }).await.unwrap_or_else(|err| {
-        panic!("Something went wrong!\n{:?}", err);
-    });
-
-    
 
     // Setup controller routes and inject app state
     let app_state = Arc::new(AppState { 
         registry: handlebars,
-        client: Client::new(),
-        conn,
+        client: Client::new()
     });
     let app = Router::new()
         .route("/", get(index::get_index))
@@ -113,5 +88,4 @@ async fn main() {
         .serve(app.into_make_service())
         .await
         .unwrap();
-    
 }
