@@ -1,5 +1,5 @@
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GithubUser {
     pub id: i32,
     pub username: String,
