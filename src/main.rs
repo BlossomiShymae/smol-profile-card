@@ -18,6 +18,7 @@ pub mod entities;
 pub mod repositories;
 pub mod services;
 pub mod mappers;
+pub mod time;
 
 use controllers::{index, image};
 use repositories::github_user_repository::GitHubUserRepository;
