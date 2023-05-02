@@ -100,6 +100,7 @@ async fn main() {
     // Setup services
     let github_user_service = GitHubUserService {
         client: Arc::new(Mutex::new(client.clone())),
+        image_client: Arc::new(client.clone()),
         repository: github_user_repository,
         remaining: Arc::new(Mutex::new(0)),
         reset: Arc::new(Mutex::new(0)),

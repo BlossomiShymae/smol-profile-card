@@ -13,6 +13,7 @@ use crate::time;
 pub struct GitHubUserService {
     pub repository: GitHubUserRepository,
     pub client: Arc<Mutex<Client>>,
+    pub image_client: Arc<Client>,
     pub remaining: Arc<Mutex<i64>>,
     pub reset: Arc<Mutex<i64>>,
     pub retry_after: Arc<Mutex<i64>>,
@@ -38,6 +39,24 @@ impl GitHubUserService {
             None => self.update_user(username).await
         };
         result_option
+    }
+
+    pub async fn get_avatar_by_id(&self, id: i32) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
+        let url = format!("https://avatars.githubusercontent.com/u/{}?v=4", id);
+        let response = self.image_client.get(url)
+            .header("User-Agent", "BlossomiShymae/smol-profile-card")
+            .send()
+            .await
+            .expect("Failed to get avatar!");
+
+        if !response.status().is_success() {
+            log::error!("{:?}", response.status());
+            log::error!("{:?}", response.text().await.unwrap());
+            return Err(String::from("Failed to get response!"))?;
+        }
+
+        let data = response.bytes().await.expect("Failed to get bytes!");
+        Ok(data.to_vec())
     }
 
     async fn update_user(&self, username: &str) -> Result<Option<GithubUser>, Box<dyn Error + Send + Sync>> {
