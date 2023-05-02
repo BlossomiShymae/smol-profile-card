@@ -5,6 +5,7 @@ use axum::http::{Response, StatusCode};
 use axum::body::{boxed, Body};
 use handlebars::Handlebars;
 use services::github_user_service::GitHubUserService;
+use tokio::sync::Mutex;
 use tokio_rusqlite::{Connection};
 use tower::{ServiceBuilder, ServiceExt};
 use tower_http::services::ServeDir;
@@ -97,7 +98,7 @@ async fn main() {
 
     // Setup services
     let github_user_service = GitHubUserService {
-        client: client.clone(),
+        client: Arc::new(Mutex::new(client.clone())),
         repository: github_user_repository
     };
 

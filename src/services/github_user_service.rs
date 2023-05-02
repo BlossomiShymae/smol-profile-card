@@ -1,6 +1,7 @@
 use std::error::Error;
-
+use tokio::sync::Mutex;
 use reqwest::Client;
+use std::sync::Arc;
 
 use crate::mappers::github_user_mapper;
 use crate::{models::github_user::GithubUser, repositories::github_user_repository::GitHubUserRepository};
@@ -8,7 +9,7 @@ use crate::{models::github_user::GithubUser, repositories::github_user_repositor
 
 pub struct GitHubUserService {
     pub repository: GitHubUserRepository,
-    pub client: Client
+    pub client: Arc<Mutex<Client>>,
 }
 
 impl GitHubUserService {
@@ -37,7 +38,8 @@ impl GitHubUserService {
         let url = format!("https://api.github.com/users/{}", username);
         log::info!("Making request to {}...", url);
 
-        let response = self.client.get(url)
+        let client = self.client.lock().await;
+        let response = client.get(url)
             .header("User-Agent", "BlossomiShymae/smol-profile-card")
             .header("Accept", "application/json")
             .send()
