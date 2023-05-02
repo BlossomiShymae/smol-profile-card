@@ -40,14 +40,14 @@ impl GitHubUserService {
 
                 let contents = response.text().await.expect("Failed to get response!");
                 let user: GithubUser = serde_json::from_str(&contents).expect("Failed to deserialize GithubUser");
-                let insert_result = self.repository.insert(github_user_mapper::to_entity(&user)).await;
+                let upsert_result = self.repository.upsert(github_user_mapper::to_entity(&user)).await;
 
-                match insert_result {
+                match upsert_result {
                     Ok(()) => Ok(Some(user)),
                     Err(e) => {
-                        log::error!("Failed to insert user: {}", user.login);
+                        log::error!("Failed to upsert user: {}", user.login);
                         log::error!("{:?}", e);
-                        return Err(String::from("Failed to insert user!"))?;
+                        return Err(String::from("Failed to upsert user!"))?;
                     }
                 }
             }
