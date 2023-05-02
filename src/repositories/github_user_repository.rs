@@ -28,6 +28,39 @@ impl GitHubUserRepository {
         }).await.unwrap().first().cloned()
     }
 
+    pub async fn upsert(&self, entity: GithubUser) -> Result<(), tokio_rusqlite::Error> {
+        let insert_result = self.insert(entity.clone()).await;
+        if let Ok(()) = insert_result {
+            Ok(())
+        } else {
+            let update_result = self.update(entity.clone()).await;
+            update_result
+        }
+    }
+
+    pub async fn update(&self, entity: GithubUser) -> Result<(), tokio_rusqlite::Error> {
+        let entity_clone = entity.clone();
+        self.conn.call(move |conn| {
+            let query = "UPDATE GitHubUser
+                SET id = ?1,
+                SET username = ?2,
+                SET name = ?3,
+                SET location = ?4,
+                SET avatar_url = ?5
+                WHERE id = ?1";
+            conn.execute(query, params![
+                entity_clone.id,
+                entity_clone.username,
+                entity_clone.name,
+                entity_clone.location,
+                entity_clone.avatar_url
+                ]
+            ).unwrap();
+
+            Ok(())
+        }).await
+    }
+
     pub async fn insert(&self, entity: GithubUser) -> Result<(), tokio_rusqlite::Error> {
         let entity_clone = entity.clone();
         self.conn.call(move |conn| {
