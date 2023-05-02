@@ -12,16 +12,16 @@ pub struct GitHubUserService {
 }
 
 impl GitHubUserService {
-    pub async fn get_by_username(&self, username: &str) -> Result<Option<GithubUser>, Box<dyn Error>> {
+    pub async fn get_by_username(&self, username: &str) -> Result<Option<GithubUser>, Box<dyn Error + Send + Sync>> {
         let username_clone = username.clone();
         let stored_user_option = self.repository.get_by_username(username).await;
-        let result_option: Result<Option<GithubUser>, Box<dyn Error>> = match stored_user_option {
+        let result_option: Result<Option<GithubUser>, Box<dyn Error + Send + Sync>> = match stored_user_option {
             Some(user) => {
-                log::info!("Hit for GitHub user for username: {}!", username_clone);
+                log::info!("Hit for GitHub user, username: {}!", username_clone);
                 Ok(Some(github_user_mapper::to_model(&user)))
             },
             None => {
-                log::info!("Miss for GitHub user for username: {}!", username_clone);
+                log::info!("Miss for GitHub user, username: {}!", username_clone);
                 let url = format!("https://api.github.com/users/{}", username_clone);
                 log::info!("Making request to {}...", url);
 
