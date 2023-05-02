@@ -1,6 +1,7 @@
 use crate::entities;
 use crate::models;
 
+
 pub fn to_entity(model: &models::github_user::GithubUser) -> entities::github_user::GithubUser {
     let model_clone = model.clone();
     entities::github_user::GithubUser {
@@ -8,7 +9,9 @@ pub fn to_entity(model: &models::github_user::GithubUser) -> entities::github_us
         username: model_clone.login,
         avatar_url: model_clone.avatar_url,
         location: model_clone.location,
-        name: model_clone.name
+        name: model_clone.name,
+        // Set expiration a day from now
+        expiration: chrono::prelude::Utc::now().timestamp_millis() + (1000 * 60 * 60 * 24),
     }
 }
 

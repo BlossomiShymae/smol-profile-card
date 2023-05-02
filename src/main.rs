@@ -75,7 +75,8 @@ async fn main() {
             username    TEXT NOT NULL COLLATE NOCASE,
             name        TEXT NOT NULL,
             location    TEXT NOT NULL,
-            avatar_url  TEXT NOT NULL
+            avatar_url  TEXT NOT NULL,
+            expiration  INTEGER NOT NULL
         )",
         ()).unwrap_or_else(|err| {
         panic!("Failed to create table for GitHubUser!\n{:?}", err);

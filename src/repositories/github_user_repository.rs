@@ -21,6 +21,7 @@ impl GitHubUserRepository {
                     name: row.get(2)?,
                     location: row.get(3)?,
                     avatar_url: row.get(4)?,
+                    expiration: row.get(5)?
                 })
             })?.collect::<Result<Vec<crate::entities::github_user::GithubUser>, rusqlite::Error>>()?;
     
@@ -39,6 +40,7 @@ impl GitHubUserRepository {
                     name: row.get(2)?,
                     location: row.get(3)?,
                     avatar_url: row.get(4)?,
+                    expiration: row.get(5)?
                 })
             })?.collect::<Result<Vec<crate::entities::github_user::GithubUser>, rusqlite::Error>>()?;
 
@@ -64,14 +66,16 @@ impl GitHubUserRepository {
                 SET username = ?2,
                 SET name = ?3,
                 SET location = ?4,
-                SET avatar_url = ?5
+                SET avatar_url = ?5,
+                SET expiration = ?6,
                 WHERE id = ?1";
             conn.execute(query, params![
                 entity_clone.id,
                 entity_clone.username,
                 entity_clone.name,
                 entity_clone.location,
-                entity_clone.avatar_url
+                entity_clone.avatar_url,
+                entity_clone.expiration
                 ]
             ).unwrap();
 
@@ -82,13 +86,14 @@ impl GitHubUserRepository {
     pub async fn insert(&self, entity: GithubUser) -> Result<(), tokio_rusqlite::Error> {
         let entity_clone = entity.clone();
         self.conn.call(move |conn| {
-            let query = "INSERT INTO GitHubUser (id, username, name, location, avatar_url) VALUES (?1, ?2, ?3, ?4, ?5)";
+            let query = "INSERT INTO GitHubUser (id, username, name, location, avatar_url, expiration) VALUES (?1, ?2, ?3, ?4, ?5, ?6)";
             conn.execute(query, params![
                 entity_clone.id, 
                 entity_clone.username, 
                 entity_clone.name, 
                 entity_clone.location, 
-                entity_clone.avatar_url
+                entity_clone.avatar_url,
+                entity_clone.expiration
                 ]
             ).unwrap();
 

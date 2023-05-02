@@ -6,4 +6,5 @@ pub struct GithubUser {
     pub name: String,
     pub location: String,
     pub avatar_url: String,
+    pub expiration: i64,
 }
