@@ -1,4 +1,4 @@
-use std::{sync::Arc, net::{SocketAddr, IpAddr, Ipv4Addr}, str::FromStr};
+use std::{sync::{Arc}, net::{SocketAddr, IpAddr, Ipv4Addr}, str::FromStr};
 use clap::Parser;
 use axum::{routing::get, Router};
 use axum::http::{Response, StatusCode};
@@ -100,7 +100,10 @@ async fn main() {
     // Setup services
     let github_user_service = GitHubUserService {
         client: Arc::new(Mutex::new(client.clone())),
-        repository: github_user_repository
+        repository: github_user_repository,
+        remaining: Arc::new(Mutex::new(0)),
+        reset: Arc::new(Mutex::new(0)),
+        retry_after: Arc::new(Mutex::new(0))
     };
 
     // Setup controller routes and inject app state

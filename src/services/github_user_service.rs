@@ -1,15 +1,21 @@
+use std::cmp::Ordering;
 use std::error::Error;
+use axum::http::{HeaderMap};
 use tokio::sync::Mutex;
 use reqwest::Client;
 use std::sync::Arc;
 
 use crate::mappers::github_user_mapper;
 use crate::{models::github_user::GithubUser, repositories::github_user_repository::GitHubUserRepository};
+use crate::time;
 
 
 pub struct GitHubUserService {
     pub repository: GitHubUserRepository,
     pub client: Arc<Mutex<Client>>,
+    pub remaining: Arc<Mutex<i64>>,
+    pub reset: Arc<Mutex<i64>>,
+    pub retry_after: Arc<Mutex<i64>>,
 }
 
 impl GitHubUserService {
@@ -22,6 +28,7 @@ impl GitHubUserService {
                 let current_timestamp = chrono::prelude::Utc::now().timestamp_millis();
                 if current_timestamp >= user.expiration {
                     // Miss
+                    log::info!("Expired timestamp, username: {}!", username_clone);
                     return self.update_user(username).await;
                 }
                 // Hit
@@ -39,12 +46,33 @@ impl GitHubUserService {
         log::info!("Making request to {}...", url);
 
         let client = self.client.lock().await;
+        let mut remaining = self.remaining.lock().await;
+        let mut reset = self.reset.lock().await;
+        let mut retry_after = self.retry_after.lock().await;
+        // If retry after timestamp has not expired
+        if retry_after.cmp(&time::get_timestamp()) == Ordering::Greater {
+            log::warn!("Reached the secondary rate limit for GitHub!");
+            return Err(String::from("Reached the secondary rate limit!"))?;
+        }
+        // If remaining requests is zero and the reset timestamp has not expired
+        if remaining.cmp(&0) == Ordering::Equal && reset.cmp(&time::get_timestamp()) == Ordering::Greater {
+            log::warn!("Reached the request limit for GitHub!");
+            return Err(String::from("Reached the request limit!"))?;
+        }
         let response = client.get(url)
             .header("User-Agent", "BlossomiShymae/smol-profile-card")
             .header("Accept", "application/json")
             .send()
             .await
             .expect("Failed to get response");
+
+        let header_map = response.headers();
+        let new_remaining: i64 = GitHubUserService::get_int(header_map, "x-ratelimit-remaining");
+        let new_reset: i64 = GitHubUserService::get_int(header_map, "x-ratelimit-reset");
+        let new_retry_after: i64 = GitHubUserService::get_int(header_map, "retry-after");
+        *remaining = new_remaining;
+        *reset = new_reset;
+        *retry_after = time::get_timestamp() + new_retry_after;
 
         if !response.status().is_success() {
             log::error!("{:?}", response.status());
@@ -63,6 +91,19 @@ impl GitHubUserService {
                 log::error!("{:?}", e);
                 return Err(String::from("Failed to upsert user!"))?;
             }
+        }
+    }
+
+    fn get_int(header_map: &HeaderMap, key: &str) -> i64 {
+        match header_map.get(key) {
+            Some(value_option) => match value_option.to_str() {
+                Ok(str) => match str.to_string().parse() {
+                    Ok(value) => value,
+                    Err(_) => 0
+                },
+                Err(_) => 0
+            },
+            None => 0
         }
     }
 }
