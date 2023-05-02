@@ -4,6 +4,7 @@ use axum::{routing::get, Router};
 use axum::http::{Response, StatusCode};
 use axum::body::{boxed, Body};
 use handlebars::Handlebars;
+use services::github_user_service::GitHubUserService;
 use tokio_rusqlite::{Connection};
 use tower::{ServiceBuilder, ServiceExt};
 use tower_http::services::ServeDir;
@@ -42,7 +43,7 @@ pub struct AppState {
     registry: Handlebars<'static>,
     client: Client,
     conn: Connection,
-    github_user_repository: GitHubUserRepository
+    github_user_service: GitHubUserService
 }
 
 #[tokio::main]
@@ -85,17 +86,26 @@ async fn main() {
         panic!("Something went wrong!\n{:?}", err);
     });
 
+    // Create reqwest client
+    let client = Client::new();
+
     // Setup repositories
     let github_user_repository = GitHubUserRepository {
         conn: conn.clone()
     };
 
+    // Setup services
+    let github_user_service = GitHubUserService {
+        client: client.clone(),
+        repository: github_user_repository
+    };
+
     // Setup controller routes and inject app state
     let app_state = Arc::new(AppState { 
         registry: handlebars,
-        client: Client::new(),
+        client: client,
         conn,
-        github_user_repository
+        github_user_service,
     });
     let app = Router::new()
         .route("/", get(index::get_index))
