@@ -14,6 +14,7 @@ pub mod models;
 pub mod controllers;
 pub mod entities;
 pub mod repositories;
+pub mod services;
 
 use controllers::{index, image};
 use repositories::github_user_repository::GitHubUserRepository;
@@ -87,7 +88,6 @@ async fn main() {
     let github_user_repository = GitHubUserRepository {
         conn: conn.clone()
     };
-
 
     // Setup controller routes and inject app state
     let app_state = Arc::new(AppState { 
