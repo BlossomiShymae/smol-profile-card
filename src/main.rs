@@ -72,7 +72,7 @@ async fn main() {
     conn.call(|conn| {
         conn.execute("CREATE TABLE IF NOT EXISTS GitHubUser (
             id          INTEGER PRIMARY KEY,
-            username    TEXT NOT NULL,
+            username    TEXT NOT NULL COLLATE NOCASE,
             name        TEXT NOT NULL,
             location    TEXT NOT NULL,
             avatar_url  TEXT NOT NULL
