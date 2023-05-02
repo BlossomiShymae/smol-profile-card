@@ -1971,6 +1971,7 @@ dependencies = [
  "log",
  "reqwest",
  "rusqlite",
+ "rusttype",
  "serde",
  "serde_json",
  "tokio",
