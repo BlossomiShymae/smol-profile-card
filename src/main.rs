@@ -20,6 +20,7 @@ pub mod repositories;
 pub mod services;
 pub mod mappers;
 pub mod time;
+pub mod validators;
 
 use controllers::{index, image};
 use repositories::github_user_repository::GitHubUserRepository;
