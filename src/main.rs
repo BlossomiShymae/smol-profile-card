@@ -77,8 +77,8 @@ async fn main() {
         let query = format!("CREATE TABLE IF NOT EXISTS {} (
             id          INTEGER PRIMARY KEY,
             username    TEXT NOT NULL COLLATE NOCASE,
-            name        TEXT NOT NULL,
-            location    TEXT NOT NULL,
+            name        TEXT,
+            location    TEXT,
             avatar_url  TEXT NOT NULL,
             expiration  INTEGER NOT NULL
         )", TABLE_GITHUB_USER);
