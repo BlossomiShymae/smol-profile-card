@@ -4,6 +4,7 @@ use axum::{routing::get, Router};
 use axum::http::{Response, StatusCode};
 use axum::body::{boxed, Body};
 use handlebars::Handlebars;
+use mappers::pronouns_mapper::PronounsMapper;
 use services::github_user_service::GitHubUserService;
 use tokio::sync::Mutex;
 use tokio_rusqlite::{Connection};
@@ -43,7 +44,8 @@ struct Opt {
 
 pub struct AppState {
     registry: Handlebars<'static>,
-    github_user_service: GitHubUserService
+    github_user_service: GitHubUserService,
+    pronouns_mapper: PronounsMapper
 }
 
 #[tokio::main]
@@ -109,6 +111,7 @@ async fn main() {
     let app_state = Arc::new(AppState { 
         registry: handlebars,
         github_user_service,
+        pronouns_mapper: PronounsMapper::new(),
     });
     let app = Router::new()
         .route("/", get(index::get_index))
