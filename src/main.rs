@@ -43,8 +43,6 @@ struct Opt {
 
 pub struct AppState {
     registry: Handlebars<'static>,
-    client: Client,
-    conn: Connection,
     github_user_service: GitHubUserService
 }
 
@@ -110,8 +108,6 @@ async fn main() {
     // Setup controller routes and inject app state
     let app_state = Arc::new(AppState { 
         registry: handlebars,
-        client: client,
-        conn,
         github_user_service,
     });
     let app = Router::new()
