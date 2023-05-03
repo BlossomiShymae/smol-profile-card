@@ -7,12 +7,12 @@ use std::sync::Arc;
 use urlencoding::encode;
 
 use crate::mappers::github_user_mapper;
-use crate::{models::github_user::GithubUser, repositories::github_user_repository::GitHubUserRepository};
+use crate::{models::github_user::GithubUser, repositories::github_user_repository::GithubUserRepository};
 use crate::time;
 
 
-pub struct GitHubUserService {
-    pub repository: GitHubUserRepository,
+pub struct GithubUserService {
+    pub repository: GithubUserRepository,
     pub client: Arc<Mutex<Client>>,
     pub image_client: Arc<Client>,
     pub remaining: Arc<Mutex<i64>>,
@@ -20,7 +20,7 @@ pub struct GitHubUserService {
     pub retry_after: Arc<Mutex<i64>>,
 }
 
-impl GitHubUserService {
+impl GithubUserService {
     pub async fn get_by_username(&self, username: &str) -> Result<Option<GithubUser>, Box<dyn Error + Send + Sync>> {
         let username_clone = username.clone();
         let stored_user_option = self.repository.get_by_username(username).await;
@@ -87,9 +87,9 @@ impl GitHubUserService {
             .expect("Failed to get response for user!");
 
         let header_map = response.headers();
-        let new_remaining: i64 = GitHubUserService::get_int(header_map, "x-ratelimit-remaining");
-        let new_reset: i64 = GitHubUserService::get_int(header_map, "x-ratelimit-reset");
-        let new_retry_after: i64 = GitHubUserService::get_int(header_map, "retry-after");
+        let new_remaining: i64 = GithubUserService::get_int(header_map, "x-ratelimit-remaining");
+        let new_reset: i64 = GithubUserService::get_int(header_map, "x-ratelimit-reset");
+        let new_retry_after: i64 = GithubUserService::get_int(header_map, "retry-after");
         *remaining = new_remaining;
         *reset = new_reset;
         *retry_after = time::get_timestamp() + new_retry_after;

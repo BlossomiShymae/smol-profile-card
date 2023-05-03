@@ -5,7 +5,7 @@ use axum::http::{Response, StatusCode};
 use axum::body::{boxed, Body};
 use handlebars::Handlebars;
 use mappers::pronouns_mapper::PronounsMapper;
-use services::github_user_service::GitHubUserService;
+use services::github_user_service::GithubUserService;
 use tokio::sync::Mutex;
 use tokio_rusqlite::{Connection};
 use tower::{ServiceBuilder, ServiceExt};
@@ -23,7 +23,7 @@ pub mod time;
 pub mod validators;
 
 use controllers::{index, image};
-use repositories::github_user_repository::GitHubUserRepository;
+use repositories::github_user_repository::GithubUserRepository;
 
 static TABLE_GITHUB_USER: &str = "GithubUser";
 
@@ -47,7 +47,7 @@ struct Opt {
 
 pub struct AppState {
     registry: Handlebars<'static>,
-    github_user_service: GitHubUserService,
+    github_user_service: GithubUserService,
     pronouns_mapper: PronounsMapper
 }
 
@@ -95,12 +95,12 @@ async fn main() {
     let client = Client::new();
 
     // Setup repositories
-    let github_user_repository = GitHubUserRepository {
+    let github_user_repository = GithubUserRepository {
         conn: conn.clone()
     };
 
     // Setup services
-    let github_user_service = GitHubUserService {
+    let github_user_service = GithubUserService {
         client: Arc::new(Mutex::new(client.clone())),
         image_client: Arc::new(client.clone()),
         repository: github_user_repository,

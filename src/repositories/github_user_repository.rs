@@ -4,11 +4,11 @@ use tokio_rusqlite::Connection;
 use crate::{entities::github_user::GithubUser, TABLE_GITHUB_USER};
 
 
-pub struct GitHubUserRepository {
+pub struct GithubUserRepository {
     pub conn: Connection,
 }
 
-impl GitHubUserRepository {
+impl GithubUserRepository {
     pub async fn get_by_username(&self, username: &str) -> Option<GithubUser> {
         let username_clone = username.to_string();
         self.conn.call(move |conn| {
