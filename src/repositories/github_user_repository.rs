@@ -1,7 +1,7 @@
 use rusqlite::params;
 use tokio_rusqlite::Connection;
 
-use crate::entities::github_user::GithubUser;
+use crate::{entities::github_user::GithubUser, TABLE_GITHUB_USER};
 
 
 pub struct GitHubUserRepository {
@@ -12,7 +12,7 @@ impl GitHubUserRepository {
     pub async fn get_by_username(&self, username: &str) -> Option<GithubUser> {
         let username_clone = username.to_string();
         self.conn.call(move |conn| {
-            let query = format!("SELECT * FROM GitHubUser WHERE username = '{}'", username_clone);
+            let query = format!("SELECT * FROM {} WHERE username = '{}'", TABLE_GITHUB_USER, username_clone);
             let mut stmt = conn.prepare(query.as_str()).unwrap();
             let users = stmt.query_map([], |row| {
                 Ok(crate::entities::github_user::GithubUser {
@@ -31,7 +31,7 @@ impl GitHubUserRepository {
 
     pub async fn get_by_id(&self, id: i32) -> Option<GithubUser> {
         self.conn.call(move |conn| {
-            let query = format!("SELECT * FROM GitHubUser WHERE id = {}", id);
+            let query = format!("SELECT * FROM {} WHERE id = {}", TABLE_GITHUB_USER, id);
             let mut stmt = conn.prepare(query.as_str()).unwrap();
             let users = stmt.query_map([], |row| {
                 Ok(crate::entities::github_user::GithubUser {
@@ -59,15 +59,15 @@ impl GitHubUserRepository {
     pub async fn update(&self, entity: GithubUser) -> Result<(), tokio_rusqlite::Error> {
         let entity_clone = entity.clone();
         self.conn.call(move |conn| {
-            let query = "UPDATE GitHubUser
+            let query = format!("UPDATE {}
                 SET id = ?1,
                 SET username = ?2,
                 SET name = ?3,
                 SET location = ?4,
                 SET avatar_url = ?5,
                 SET expiration = ?6,
-                WHERE id = ?1";
-            let execute_result = conn.execute(query, params![
+                WHERE id = ?1", TABLE_GITHUB_USER);
+            let execute_result = conn.execute(query.as_str(), params![
                 entity_clone.id,
                 entity_clone.username,
                 entity_clone.name,
@@ -87,8 +87,8 @@ impl GitHubUserRepository {
     pub async fn insert(&self, entity: GithubUser) -> Result<(), tokio_rusqlite::Error> {
         let entity_clone = entity.clone();
         self.conn.call(move |conn| {
-            let query = "INSERT INTO GitHubUser (id, username, name, location, avatar_url, expiration) VALUES (?1, ?2, ?3, ?4, ?5, ?6)";
-            let execute_result = conn.execute(query, params![
+            let query = format!("INSERT INTO {} (id, username, name, location, avatar_url, expiration) VALUES (?1, ?2, ?3, ?4, ?5, ?6)", TABLE_GITHUB_USER);
+            let execute_result = conn.execute(query.as_str(), params![
                 entity_clone.id, 
                 entity_clone.username, 
                 entity_clone.name, 

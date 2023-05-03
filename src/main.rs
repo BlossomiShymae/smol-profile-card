@@ -25,6 +25,8 @@ pub mod validators;
 use controllers::{index, image};
 use repositories::github_user_repository::GitHubUserRepository;
 
+static TABLE_GITHUB_USER: &str = "GithubUser";
+
 
 // Command line interface
 #[derive(Parser, Debug)]
@@ -72,16 +74,16 @@ async fn main() {
         panic!("Failed to create a connection to database!\n{:?}", err);
     });
     conn.call(|conn| {
-        conn.execute("CREATE TABLE IF NOT EXISTS GitHubUser (
+        let query = format!("CREATE TABLE IF NOT EXISTS {} (
             id          INTEGER PRIMARY KEY,
             username    TEXT NOT NULL COLLATE NOCASE,
             name        TEXT NOT NULL,
             location    TEXT NOT NULL,
             avatar_url  TEXT NOT NULL,
             expiration  INTEGER NOT NULL
-        )",
-        ()).unwrap_or_else(|err| {
-        panic!("Failed to create table for GitHubUser!\n{:?}", err);
+        )", TABLE_GITHUB_USER);
+        conn.execute(query.as_str(),()).unwrap_or_else(|err| {
+            panic!("Failed to create table for GitHubUser!\n{:?}", err);
         });
 
         Ok(())
