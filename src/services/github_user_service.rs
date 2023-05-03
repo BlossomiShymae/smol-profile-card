@@ -4,6 +4,7 @@ use axum::http::{HeaderMap};
 use tokio::sync::Mutex;
 use reqwest::Client;
 use std::sync::Arc;
+use urlencoding::encode;
 
 use crate::mappers::github_user_mapper;
 use crate::{models::github_user::GithubUser, repositories::github_user_repository::GitHubUserRepository};
@@ -52,7 +53,7 @@ impl GitHubUserService {
         if !response.status().is_success() {
             log::error!("{:?}", response.status());
             log::error!("{:?}", response.text().await.unwrap());
-            return Err(String::from("Failed to get response!"))?;
+            return Err(String::from("Failed to get response for avatar!"))?;
         }
 
         let data = response.bytes().await.expect("Failed to get bytes!");
@@ -61,7 +62,7 @@ impl GitHubUserService {
 
     async fn update_user(&self, username: &str) -> Result<Option<GithubUser>, Box<dyn Error + Send + Sync>> {
         log::info!("Miss for GitHub user, username: {}!", username);
-        let url = format!("https://api.github.com/users/{}", username);
+        let url = format!("https://api.github.com/users/{}", encode(username));
         log::info!("Making request to {}...", url);
 
         let client = self.client.lock().await;
@@ -83,7 +84,7 @@ impl GitHubUserService {
             .header("Accept", "application/json")
             .send()
             .await
-            .expect("Failed to get response");
+            .expect("Failed to get response for user!");
 
         let header_map = response.headers();
         let new_remaining: i64 = GitHubUserService::get_int(header_map, "x-ratelimit-remaining");
@@ -101,6 +102,7 @@ impl GitHubUserService {
 
         let contents = response.text().await.expect("Failed to get response!");
         let user: GithubUser = serde_json::from_str(&contents).expect("Failed to deserialize GithubUser");
+        log::trace!("Upserting by login name: {}", user.login);
         let upsert_result = self.repository.upsert(github_user_mapper::to_entity(&user)).await;
 
         match upsert_result {
