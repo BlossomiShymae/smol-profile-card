@@ -119,6 +119,7 @@ async fn main() {
         .route("/", get(index::get_index))
         .route("/about", get(index::get_about))
         .route("/image", get(image::get_index))
+        .route("/image/html", get(image::get_html))
         .fallback_service(get(|req| async move {
             match ServeDir::new(opt.static_dir).oneshot(req).await {
                 Ok(res) => res.map(boxed),

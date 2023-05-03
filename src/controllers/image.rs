@@ -3,7 +3,7 @@ use std::sync::Arc;
 use axum::body::Full;
 use axum::http::{StatusCode};
 use axum::extract::{State, Query};
-use axum::response::{Response, IntoResponse};
+use axum::response::{Response, IntoResponse, Html};
 use image::imageops::FilterType;
 use image::{Rgba, ImageFormat, DynamicImage, RgbaImage, ImageBuffer};
 use serde::Deserialize;
@@ -92,6 +92,20 @@ pub async fn get_index(query: Query<GithubUserViewModel>, State(state): State<Ar
     }
 
     super::get_error_page(&state.registry, StatusCode::INTERNAL_SERVER_ERROR).await
+}
+
+pub async fn get_html(query: Query<GithubUserViewModel>, State(state): State<Arc<AppState>>) -> Response {
+    let vm = query.0;
+    if !vm.is_valid() {
+        return super::get_error_page(&state.registry, StatusCode::BAD_REQUEST).await;
+    }
+
+    let r = format!("<img class=\"img-fluid img-thumbnail\" src=\"http://localhost:8080/image?user={}&pronouns={}\"/>",
+        vm.user.as_str(),
+        vm.pronouns.unwrap_or("".to_string()).as_str()
+    );
+    log::debug!("{}", r);
+    return (StatusCode::OK, Html(r)).into_response();
 }
 
 fn round_image_mut(image: &mut ImageBuffer<Rgba<u8>, Vec<u8>>) {
