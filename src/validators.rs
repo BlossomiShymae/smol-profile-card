@@ -18,3 +18,7 @@ pub fn is_str_valid_pattern(value: &str, blacklist: &str) -> bool {
 pub fn is_str_alphanumeric(value: &str) -> bool {
     value.chars().all(char::is_alphanumeric)
 }
+
+pub fn is_str_delimiter_free(value: &str) -> bool {
+    is_str_valid_pattern(value, ":/?#[]@!$&'()*+,;=")
+}
