@@ -1,7 +1,7 @@
 pub mod index;
 pub mod image;
 
-use axum::response::Html;
+use axum::response::{Html, Response, IntoResponse};
 use reqwest::StatusCode;
 use serde::{Serialize};
 use handlebars::Handlebars;
@@ -19,7 +19,7 @@ pub struct TemplateErrorViewModel {
     pub reason: String,
 }
 
-pub async fn get_error_page(registry: &Handlebars<'static>, status_code: StatusCode) -> (StatusCode, Html<String>) {
+pub async fn get_error_page(registry: &Handlebars<'static>, status_code: StatusCode) -> Response {
     let status_title = get_status_title(status_code);
     let template_error_vm = TemplateErrorViewModel {
         code: status_code.as_u16(),
@@ -33,7 +33,7 @@ pub async fn get_error_page(registry: &Handlebars<'static>, status_code: StatusC
     };
     let r = registry.render("template", &template_vm).unwrap();
     
-    (status_code, Html(r))
+    (status_code, Html(r)).into_response()
 }
 
 fn get_status_title(status_code: StatusCode) -> String {

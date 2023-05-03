@@ -39,8 +39,7 @@ pub async fn get_index(query: Query<GithubUserViewModel>, State(state): State<Ar
     let vm = query.0;
     if !vm.is_valid() {
         return super::get_error_page(&state.registry, StatusCode::BAD_REQUEST)
-            .await
-            .into_response();
+            .await;
     }
 
     let username = vm.user.to_string();
@@ -63,7 +62,7 @@ pub async fn get_index(query: Query<GithubUserViewModel>, State(state): State<Ar
         if let Some(user) = user_option {
             let avatar_result = state.github_user_service.get_avatar_by_id(user.id).await;
             if avatar_result.is_err() {
-                return super::get_error_page(&state.registry, StatusCode::INTERNAL_SERVER_ERROR).await.into_response();
+                return super::get_error_page(&state.registry, StatusCode::INTERNAL_SERVER_ERROR).await
             }
             let avatar = avatar_result.unwrap();
             let mut avatar_img = image::load_from_memory(&avatar).unwrap();
@@ -110,7 +109,7 @@ pub async fn get_index(query: Query<GithubUserViewModel>, State(state): State<Ar
         }
     }
 
-    super::get_error_page(&state.registry, StatusCode::INTERNAL_SERVER_ERROR).await.into_response()
+    super::get_error_page(&state.registry, StatusCode::INTERNAL_SERVER_ERROR).await
 }
 
 async fn draw_image(user: &crate::models::github_user::GithubUser, pronouns_tag: &str) -> DynamicImage {
