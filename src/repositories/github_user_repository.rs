@@ -50,11 +50,9 @@ impl GitHubUserRepository {
 
     pub async fn upsert(&self, entity: GithubUser) -> Result<(), tokio_rusqlite::Error> {
         let insert_result = self.insert(entity.clone()).await;
-        if let Ok(()) = insert_result {
-            Ok(())
-        } else {
-            let update_result = self.update(entity.clone()).await;
-            update_result
+        match insert_result {
+            Ok(_) => Ok(()),
+            Err(_) => self.update(entity.clone()).await
         }
     }
 
@@ -69,7 +67,7 @@ impl GitHubUserRepository {
                 SET avatar_url = ?5,
                 SET expiration = ?6,
                 WHERE id = ?1";
-            conn.execute(query, params![
+            let execute_result = conn.execute(query, params![
                 entity_clone.id,
                 entity_clone.username,
                 entity_clone.name,
@@ -77,9 +75,12 @@ impl GitHubUserRepository {
                 entity_clone.avatar_url,
                 entity_clone.expiration
                 ]
-            ).unwrap();
+            );
 
-            Ok(())
+            match execute_result {
+                Ok(_) => Ok(()),
+                Err(e) => Err(e)
+            }
         }).await
     }
 
@@ -87,7 +88,7 @@ impl GitHubUserRepository {
         let entity_clone = entity.clone();
         self.conn.call(move |conn| {
             let query = "INSERT INTO GitHubUser (id, username, name, location, avatar_url, expiration) VALUES (?1, ?2, ?3, ?4, ?5, ?6)";
-            conn.execute(query, params![
+            let execute_result = conn.execute(query, params![
                 entity_clone.id, 
                 entity_clone.username, 
                 entity_clone.name, 
@@ -95,9 +96,12 @@ impl GitHubUserRepository {
                 entity_clone.avatar_url,
                 entity_clone.expiration
                 ]
-            ).unwrap();
+            );
 
-            Ok(())
+            match execute_result {
+                Ok(_) => Ok(()),
+                Err(e) => Err(e)
+            }
         }).await
     }
 }
