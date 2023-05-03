@@ -10,14 +10,9 @@ pub fn is_str_valid_length(value: &str, min: usize, max: usize) -> bool {
 }
 
 pub fn is_str_valid_pattern(value: &str, blacklist: &str) -> bool {
-    for value_c in value.chars() {
-        for blacklist_c in blacklist.chars() {
-            if value_c.eq(&blacklist_c)  {
-                return false;
-            }
-        }
-    }
-    true
+   value.chars().all(|char| {
+        blacklist.chars().all(|char_b| char != char_b)
+   })
 }
 
 pub fn is_str_alphanumeric(value: &str) -> bool {
