@@ -10,17 +10,50 @@ use serde::Deserialize;
 use rusttype::{Scale, Font};
 
 use crate::AppState;
+use crate::validators;
 
 
 #[derive(Debug, Deserialize)]
 pub struct GithubUserViewModel {
-    user: String
+    user: String,
+    pronouns: Option<String>
+}
+
+impl GithubUserViewModel {
+    pub fn is_valid(&self) -> bool {
+        // Github username has a 39 character limit
+        let mut is_user_valid = validators::is_str_valid_length(&self.user, 0, 39);
+        is_user_valid = is_user_valid && validators::is_str_delimiter_free(&self.user);
+
+        let is_pronouns_valid = match &self.pronouns {
+            Some(pronouns) => validators::is_str_delimiter_free(&pronouns),
+            None => true
+        };
+
+        is_user_valid && is_pronouns_valid
+    }
 }
 
 #[axum_macros::debug_handler]
 pub async fn get_index(query: Query<GithubUserViewModel>, State(state): State<Arc<AppState>>) -> Response {
     let vm = query.0;
+    if !vm.is_valid() {
+        return super::get_error_page(&state.registry, StatusCode::BAD_REQUEST)
+            .await
+            .into_response();
+    }
+
     let username = vm.user.to_string();
+    let pronouns = vm.pronouns;
+    let pronouns_tag = match pronouns {
+        Some(query) => state.pronouns_mapper
+            .to_pronouns_tag(&query)
+            .unwrap_or_else(|| { "".to_string() }),
+        None => String::from("")
+    };
+
+    log::trace!("User: {}", username);
+    log::trace!("Pronouns: {}", pronouns_tag);
 
     let user_result = state.github_user_service
         .get_by_username(&username)
@@ -34,7 +67,7 @@ pub async fn get_index(query: Query<GithubUserViewModel>, State(state): State<Ar
             }
             let avatar = avatar_result.unwrap();
             let mut avatar_img = image::load_from_memory(&avatar).unwrap();
-            let mut img = draw_image(&user).await;
+            let mut img = draw_image(&user, &pronouns_tag).await;
 
             // Border round the avatar
             let mut canvas_avatar = avatar_img.to_rgba8();
@@ -44,8 +77,6 @@ pub async fn get_index(query: Query<GithubUserViewModel>, State(state): State<Ar
             let height = dim.1 as f32;
             let midpoint = ((width/2.0) as i32, (height/2.0) as i32);
             let radius = (width as i32) - midpoint.0;
-            println!("{:?}", midpoint);
-            println!("{:?}", radius);
             imageproc::drawing::draw_filled_circle_mut(
                 &mut canvas_mask, 
                 midpoint,
@@ -82,7 +113,7 @@ pub async fn get_index(query: Query<GithubUserViewModel>, State(state): State<Ar
     super::get_error_page(&state.registry, StatusCode::INTERNAL_SERVER_ERROR).await.into_response()
 }
 
-async fn draw_image(user: &crate::models::github_user::GithubUser) -> DynamicImage {
+async fn draw_image(user: &crate::models::github_user::GithubUser, pronouns_tag: &str) -> DynamicImage {
     // Create profile card image
     let mut img = image::open("images/dark_template.png").unwrap();
     let mut location_img = image::open("images/location.png").unwrap();
@@ -135,7 +166,7 @@ async fn draw_image(user: &crate::models::github_user::GithubUser) -> DynamicIma
             y: smol_font_size
         }, 
         &light_font, 
-        "she/her".into()
+        pronouns_tag.clone()
     );
 
     img
