@@ -1,7 +1,9 @@
 <h1>smol-profile-card</h1>
 <p>Generate a smol profile card from your GitHub user link!</p>
 
-<form method="get" action="/image" class="mb-3 d-flex">
+<form hx-get="/image/html" 
+  hx-target="#smol-profile-card"
+  class="mb-3 d-flex">
   <div class="form-floating me-2">
     <input type="text" required
       class="form-control" name="user" id="githubUserInput" aria-describedby="helpId" placeholder="User">
@@ -9,3 +11,5 @@
   </div>  
   <button type="submit" class="btn btn-secondary">Generate</button>
 </form>
+
+<div id="smol-profile-card" class="mb-3"></div>
